@@ -1,24 +1,52 @@
 import parser_utils
+import data_utils
 
 
 def main():
-    driver = parser_utils.create_driver()
+    params = data_utils.get_ini_params('params.ini')
+    print(f'[MAIN] Параметры парсинга:\n{params}\n')
 
-    test_urls = [
-        'https://sbis.ru/contragents/7736050003/997250001',
-        'https://sbis.ru/contragents/1644003838/164401001',
-        'https://sbis.ru/contragents/7842155505/781001001',
-        'https://sbis.ru/contragents/5003052454/997350001',
-        'https://sbis.ru/contragents/6316031581/891101001',
-        'https://sbis.ru/contragents/8904034784/997250001',
-        'https://sbis.ru/contragents/7728168971/997950001'
-    ]
+    lowBorder = params['LowBorder']
+    highBorder = params['HighBorder']
 
-    for test_url in test_urls:
-        data = parser_utils.get_data(driver, test_url)
-        print(data)
+    maxParsedCompNum = params['MaxParsedNum']
 
-    parser_utils.kill_driver(driver)
+    for current_category in params['Categories']:
+        for current_region in params['Regions']:
+            print(f'[MAIN] Поиск компаний в категории \'{" -> ".join(current_category)}\'', end='')
+
+            if current_region:
+                print(f' в регионе {current_region}.', end=' ')
+            else:
+                print('.', end=' ')
+
+            if lowBorder:
+                print(f'Нижняя граница выручки - {lowBorder} млн. руб.', end=' ')
+
+            if highBorder:
+                print(f'Верхняя граница выручки - {highBorder} млн. руб.', end='')
+
+            print()
+
+            data = []
+
+            try:
+                data = parser_utils.start_contragents_parsing(current_category, current_region, lowBorder, highBorder,
+                                                              maxParsedCompNum)
+            except Exception as _ex:
+                print(f'{_ex}\n[MAIN] Во время парсинга ссылок возникла ошибка, повторяю попытку.')
+                try:
+                    if len(data) == 0:
+                        data = parser_utils.start_contragents_parsing(current_category, current_region, lowBorder,
+                                                                      highBorder, maxParsedCompNum)
+                    else:
+                        print(f'{_ex}\n[MAIN] Во время парсинга ссылок возникла ошибка.')
+                except Exception as _ex:
+                    print(f'{_ex}\n[MAIN] Во время парсинга ссылок возникла ошибка.')
+
+            finally:
+                if data:
+                    data_utils.write_to_excel('SBIS parser output.xlsx', data)
 
 
 if __name__ == "__main__":

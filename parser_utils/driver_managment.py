@@ -28,6 +28,7 @@ def kill_driver(driver):
     # print('[DRIVER INFO] Driver was closed successfully.')
 
 
+# изменяет url текущего открытого окна драйвера
 def change_url(driver, new_url: str):
     driver.execute_script('window.location.href = arguments[0];', new_url)
 
