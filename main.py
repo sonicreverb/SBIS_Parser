@@ -11,6 +11,8 @@ def main():
 
     maxParsedCompNum = params['MaxParsedNum']
 
+    timeDelay = params['TimeDelay']
+
     for current_category in params['Categories']:
         for current_region in params['Regions']:
             print(f'[MAIN] Поиск компаний в категории \'{" -> ".join(current_category)}\'', end='')
@@ -32,13 +34,13 @@ def main():
 
             try:
                 data = parser_utils.start_contragents_parsing(current_category, current_region, lowBorder, highBorder,
-                                                              maxParsedCompNum)
+                                                              maxParsedCompNum, timeDelay)
             except Exception as _ex:
                 print(f'{_ex}\n[MAIN] Во время парсинга ссылок возникла ошибка, повторяю попытку.')
                 try:
                     if len(data) == 0:
                         data = parser_utils.start_contragents_parsing(current_category, current_region, lowBorder,
-                                                                      highBorder, maxParsedCompNum)
+                                                                      highBorder, maxParsedCompNum, timeDelay)
                     else:
                         print(f'{_ex}\n[MAIN] Во время парсинга ссылок возникла ошибка.')
                 except Exception as _ex:
@@ -50,4 +52,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as _ex:
+        print(f'[MAIN] Во время выполнения программы произошла критическая ошибка!\n{_ex}')
+    finally:
+        input("[MAIN] Для завершения работы программы нажмите ENTER.")
